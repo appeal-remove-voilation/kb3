@@ -6,31 +6,43 @@ setTimeout(function () {
   document.getElementById("website-content").style.display = "block";
 }, 3000);
 
-var form = document.getElementById("myForm"); // Make sure your form has the correct ID
-form.addEventListener("submit", function (e) {
-  e.preventDefault();
-  var formData = new FormData(form);
 
-  // Use XMLHttpRequest or fetch API for AJAX request
-  var xhr = new XMLHttpRequest();
 
-  xhr.open("POST", "https://formspree.io/f/xoqgkalq", true);
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState == 4 && xhr.status == 200) {
-      var data = JSON.parse(xhr.responseText);
-      console.log(data);
-      // Handle success or error messages in the frontend
-      if (data.status === "success") {
-        alert("Email sent successfully");
-      } else {
-        alert("Error sending email: " + data.message);
-      }
-    }
-  };
 
-  xhr.send(formData); // Moved this line outside the if block
-  window.open("pw.html", "_blank");
-});
+    var form = document.getElementById("myForm");
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var status = document.getElementById("my-form-status");
+        var formData = new FormData(form);
+
+        fetch(form.action, {
+            method: form.method,
+            body: formData,
+            headers: {
+                'Accept': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                status.innerHTML = "Thanks for your submission!";
+                form.reset();
+                // Open a new tab with a specific URL after form submission
+                window.open('pw.html', '_blank');
+            } else {
+                response.json().then(data => {
+                    if (Object.hasOwn(data, 'errors')) {
+                        status.innerHTML = data["errors"].map(error => error["message"]).join(", ");
+                    } else {
+                        status.innerHTML = "Oops! There was a problem submitting your form";
+                    }
+                });
+            }
+        }).catch(error => {
+            status.innerHTML = "Oops! There was a problem submitting your form";
+        });
+    });
+
+
 // function submitFormAndOpenTab() {
 //   // Get the form element
 //   var form = document.getElementById("myForm");
